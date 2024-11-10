@@ -251,8 +251,25 @@ class StandardAtmosphere:
         if h > 90000:
             raise ValueError("h={h:.2f}м, область применимости расчётных формул для динамической вязкости (h<90км).")
         _, T_K, *_ = self.get_state_at(h)
-        mu = self.betaS / (T_K + self.S) * T_K**1.5
-        return mu
+
+        return self.viscosity_sutherland(T_K)
+    
+    
+    def viscosity_sutherland(self, T_K: float) -> float:
+        """
+        Формула Сазерленда ГОСТ, С.178
+        
+        Parameters
+        ----------
+        T_K : float
+            Абсолютная температура [К].
+        
+        Returns
+        -------
+        float
+            Динамическая вязкость [Па*с].
+        """
+        return  self.betaS / (T_K + self.S) * T_K**1.5
     
     
     def heat_conductivity(self, h: float) -> float:
@@ -278,6 +295,24 @@ class StandardAtmosphere:
         if h > 90000:
             raise ValueError("h={h:.2f}м, область применимости расчётных формул для теплопроводности: h < 90000м.")
         _, T_K, *_ = self.get_state_at(h)
+        return self.heat_conductivity_at_T(T_K)
+    
+    
+    def heat_conductivity_at_T(self, T_K: float) -> float:
+        """
+        Коэффициент теплопроводности (империческая формула ГОСТ, С. 179)
+
+        Parameters
+        ----------
+        T_K : float
+            Абсолютная температура [К].
+
+        Returns
+        -------
+        float
+            Коэффициент теплопроводности [Вт/(м*К)].
+
+        """
         lam  = 2.648151e-3 * T_K**1.5
         lam /= T_K + 245.4 * 10**(-12/T_K)
         return lam
